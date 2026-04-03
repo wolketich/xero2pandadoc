@@ -1,6 +1,20 @@
+
 (() => {
   if (window.__xpSharedLoaded) return;
   window.__xpSharedLoaded = true;
+
+  const DEFAULT_SETTINGS = {
+    documentMappings: [
+      { placeholder: 'Homeowner Full Name', source: 'contact.primaryPersonOrName' },
+      { placeholder: '+353 89 123 4567', source: 'contact.phone' },
+      { placeholder: 'hello@email.com', source: 'contact.email' },
+      { placeholder: 'Site Address', source: 'contact.billingAddress' },
+      { placeholder: 'Eircode', source: 'contact.eircode' },
+      { placeholder: 'QU-0000', source: 'lastAcceptedQuoteNumber' }
+    ],
+    toastSeconds: 2.2,
+    xeroAutoCopyToClipboard: true
+  };
 
   const XP = {
     q(selector, root = document) {
@@ -27,6 +41,15 @@
         }
       });
     },
+    async getSettings() {
+      const data = await chrome.storage.local.get(['settings']);
+      return { ...DEFAULT_SETTINGS, ...(data.settings || {}) };
+    },
+    async saveSettings(settings) {
+      const merged = { ...DEFAULT_SETTINGS, ...(settings || {}) };
+      await chrome.storage.local.set({ settings: merged });
+      return merged;
+    },
     setField(el, value) {
       if (!el || value == null) return false;
       const tag = (el.tagName || '').toLowerCase();
@@ -51,16 +74,69 @@
       };
     },
     extractEircode(address) {
-      const match = this.clean(address).match(/\b([AC-FHKNPRTV-Y]\d{2}|D6W)\s?[0-9AC-FHKNPRTV-Y]{4}\b/i);
+      const match = this.clean(address).match(/([AC-FHKNPRTV-Y]\d{2}|D6W)\s?[0-9AC-FHKNPRTV-Y]{4}/i);
       return match ? match[0].toUpperCase() : '';
     },
-    flashButton(button, text = 'Copied', revertText = null) {
-      if (!button) return;
-      const original = revertText || button.__xpOriginalText || this.text(button);
-      button.textContent = text;
+    getValueFromPayload(payload, source) {
+      const p = payload || {};
+      const contact = p.contact || {};
+      const map = {
+        'contact.name': this.clean(contact.name || ''),
+        'contact.primaryPerson': this.clean(contact.primaryPerson || ''),
+        'contact.primaryPersonOrName': this.clean(contact.primaryPerson || contact.name || ''),
+        'contact.email': this.clean(contact.email || ''),
+        'contact.phone': this.clean(contact.phone || ''),
+        'contact.billingAddress': this.clean(contact.billingAddress || ''),
+        'contact.eircode': this.extractEircode(contact.billingAddress || ''),
+        'lastAcceptedQuoteNumber': this.clean(p.lastAcceptedQuoteNumber || ''),
+        'savedAt': this.clean(p.savedAt || '')
+      };
+      return map[source] ?? '';
+    },
+    showToast(message, type = 'info', seconds = 2.2) {
+      if (!message) return;
+      const existing = document.querySelector('.xp-toast-container');
+      const container = existing || document.createElement('div');
+      if (!existing) {
+        container.className = 'xp-toast-container';
+        Object.assign(container.style, {
+          position: 'fixed',
+          top: '16px',
+          right: '16px',
+          zIndex: '2147483647',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          pointerEvents: 'none'
+        });
+        document.documentElement.appendChild(container);
+      }
+      const toast = document.createElement('div');
+      toast.textContent = message;
+      const bg = type === 'error' ? '#b42318' : type === 'success' ? '#067647' : '#1d2939';
+      Object.assign(toast.style, {
+        background: bg,
+        color: '#fff',
+        fontSize: '13px',
+        lineHeight: '1.35',
+        borderRadius: '10px',
+        padding: '10px 12px',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.22)',
+        maxWidth: '360px',
+        opacity: '0',
+        transform: 'translateY(-4px)',
+        transition: 'opacity 150ms ease, transform 150ms ease'
+      });
+      container.appendChild(toast);
+      requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+      });
       setTimeout(() => {
-        button.textContent = original;
-      }, 1200);
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-4px)';
+        setTimeout(() => toast.remove(), 180);
+      }, Math.max(1, seconds) * 1000);
     },
     observe(callback) {
       const observer = new MutationObserver(() => callback());

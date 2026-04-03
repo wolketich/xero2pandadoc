@@ -1,3 +1,4 @@
+
 (() => {
   if (window.__xpXeroLoaded) return;
   window.__xpXeroLoaded = true;
@@ -68,17 +69,20 @@
 
   async function copyPayload(button) {
     const payload = buildPayload();
+    const settings = await window.XP.getSettings();
     await window.XP.setStoredPayload(payload);
 
     const json = JSON.stringify(payload, null, 2);
-    try {
-      await navigator.clipboard.writeText(json);
-    } catch (e) {
-      // Storage is the important part. Clipboard is a bonus.
-      console.warn('Clipboard write failed', e);
+    if (settings.xeroAutoCopyToClipboard) {
+      try {
+        await navigator.clipboard.writeText(json);
+      } catch (e) {
+        console.warn('Clipboard write failed', e);
+      }
     }
 
     console.log('Saved Xero payload', payload);
+    window.XP.showToast('Saved Xero contact details' + (settings.xeroAutoCopyToClipboard ? ' and copied them' : ''), 'success', settings.toastSeconds);
     const old = button.textContent;
     button.textContent = 'Copied';
     setTimeout(() => {
@@ -114,7 +118,8 @@
         await copyPayload(copyBtn);
       } catch (err) {
         console.error(err);
-        alert('Failed to save Xero contact details');
+        const settings = await window.XP.getSettings();
+        window.XP.showToast('Failed to save Xero contact details', 'error', settings.toastSeconds);
       }
     });
 

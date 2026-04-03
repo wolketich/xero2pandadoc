@@ -1,0 +1,58 @@
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Xero to PandaDoc Helper Options</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; color: #111827; }
+    h1 { font-size: 22px; margin: 0 0 8px; }
+    p { color: #4b5563; }
+    .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-top: 16px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: center; margin-bottom: 10px; }
+    .row.header { font-weight: 700; color: #374151; }
+    input, select { width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; }
+    button { padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; background: white; cursor: pointer; }
+    button.primary { background: #111827; color: white; border-color: #111827; }
+    .actions { display: flex; gap: 10px; margin-top: 16px; }
+    .muted { color: #6b7280; font-size: 13px; }
+    .small { max-width: 180px; }
+  </style>
+</head>
+<body>
+  <h1>Xero to PandaDoc Helper</h1>
+  <p>Edit the PandaDoc placeholder mapping and a couple of extension settings. Because one hard-coded workflow is never enough.</p>
+
+  <div class="card">
+    <h2>Document field mapping</h2>
+    <p class="muted">Each PandaDoc placeholder will be filled from the chosen saved Xero value.</p>
+    <div class="row header">
+      <div>PandaDoc placeholder</div>
+      <div>Source value</div>
+      <div></div>
+    </div>
+    <div id="mappingRows"></div>
+    <button id="addRowBtn" type="button">Add mapping row</button>
+  </div>
+
+  <div class="card">
+    <h2>Other settings</h2>
+    <div class="row" style="grid-template-columns: 220px 200px;">
+      <div>Toast duration, seconds</div>
+      <div><input id="toastSeconds" class="small" type="number" min="1" max="10" step="0.1"></div>
+    </div>
+    <div class="row" style="grid-template-columns: 220px 200px;">
+      <div>Copy JSON to clipboard in Xero</div>
+      <div><select id="xeroAutoCopyToClipboard" class="small"><option value="true">Yes</option><option value="false">No</option></select></div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button id="resetBtn" type="button">Reset defaults</button>
+    <button id="saveBtn" class="primary" type="button">Save settings</button>
+  </div>
+  <p id="status" class="muted"></p>
+
+  <script src="options.js"></script>
+</body>
+</html>

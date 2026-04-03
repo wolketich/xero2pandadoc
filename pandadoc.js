@@ -1,3 +1,4 @@
+
 (() => {
   if (window.__xpPandaLoaded) return;
   window.__xpPandaLoaded = true;
@@ -25,7 +26,7 @@
     XP.setField(phoneInput, clean(contact.phone || ''));
   }
 
-  function injectRecipientDialogButton(dialog) {
+  async function injectRecipientDialogButton(dialog) {
     if (!dialog) return;
     if (q('[data-xp-fill-recipient="true"]', dialog)) return;
 
@@ -56,11 +57,13 @@
       e.preventDefault();
       e.stopPropagation();
       const payload = await XP.getStoredPayload();
+      const settings = await XP.getSettings();
       if (!payload) {
-        alert('No saved Xero details found yet. Use Copy Contact Details in Xero first.');
+        XP.showToast('No saved Xero details found yet. Use Copy Contact Details in Xero first.', 'error', settings.toastSeconds);
         return;
       }
       fillRecipientDialog(dialog, payload);
+      XP.showToast('Recipient details filled from Xero', 'success', settings.toastSeconds);
       const old = fillBtn.textContent;
       fillBtn.textContent = 'Filled';
       setTimeout(() => {
@@ -82,24 +85,21 @@
     return q(`textarea[placeholder="${placeholder}"], input[placeholder="${placeholder}"]`);
   }
 
-  function fillDocumentFields(payload) {
-    const contact = payload?.contact || payload || {};
-    const fullName = clean(contact.primaryPerson || contact.name || '');
-    const phone = clean(contact.phone || '');
-    const email = clean(contact.email || '');
-    const address = clean(contact.billingAddress || '');
-    const eircode = XP.extractEircode(address);
-    const quote = clean(payload?.lastAcceptedQuoteNumber || '');
-
-    XP.setField(byPlaceholder('Homeowner Full Name'), fullName);
-    XP.setField(byPlaceholder('+353 89 123 4567'), phone);
-    XP.setField(byPlaceholder('hello@email.com'), email);
-    XP.setField(byPlaceholder('Site Address'), address);
-    XP.setField(byPlaceholder('Eircode'), eircode);
-    XP.setField(byPlaceholder('QU-0000'), quote);
+  async function fillDocumentFields(payload) {
+    const settings = await XP.getSettings();
+    const mappings = Array.isArray(settings.documentMappings) ? settings.documentMappings : [];
+    let filled = 0;
+    for (const row of mappings) {
+      const placeholder = clean(row?.placeholder || '');
+      if (!placeholder) continue;
+      const value = XP.getValueFromPayload(payload, row?.source || '');
+      const target = byPlaceholder(placeholder);
+      if (target && XP.setField(target, value)) filled += 1;
+    }
+    return filled;
   }
 
-  function injectDocumentButton() {
+  async function injectDocumentButton() {
     const inviteBtn = document.querySelector('button[data-testid="invite_collaborator_btn"]');
     if (!inviteBtn) return;
     if (document.querySelector('[data-xp-fill-doc="true"]')) return;
@@ -122,11 +122,13 @@
       e.preventDefault();
       e.stopPropagation();
       const payload = await XP.getStoredPayload();
+      const settings = await XP.getSettings();
       if (!payload) {
-        alert('No saved Xero details found yet. Use Copy Contact Details in Xero first.');
+        XP.showToast('No saved Xero details found yet. Use Copy Contact Details in Xero first.', 'error', settings.toastSeconds);
         return;
       }
-      fillDocumentFields(payload);
+      const filled = await fillDocumentFields(payload);
+      XP.showToast(`Filled ${filled} PandaDoc field${filled === 1 ? '' : 's'} from Xero`, 'success', settings.toastSeconds);
       if (textSpan) textSpan.textContent = 'Filled';
       else fillBtn.textContent = 'Filled';
       setTimeout(() => {

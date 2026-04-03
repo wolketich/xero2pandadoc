@@ -1,9 +1,11 @@
 {
   "manifest_version": 3,
   "name": "Xero to PandaDoc Helper",
-  "version": "1.1.0",
-  "description": "Adds Xero and PandaDoc helper buttons and fills PandaDoc with saved Xero contact details.",
-  "permissions": ["storage"],
+  "version": "1.2.0",
+  "description": "Adds Xero and PandaDoc helper buttons, saves Xero contact details, and fills PandaDoc with saved data.",
+  "permissions": [
+    "storage"
+  ],
   "host_permissions": [
     "https://go.xero.com/*",
     "https://app.pandadoc.com/*"
@@ -11,15 +13,30 @@
   "background": {
     "service_worker": "background.js"
   },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Xero to PandaDoc Helper"
+  },
+  "options_page": "options.html",
   "content_scripts": [
     {
-      "matches": ["https://go.xero.com/*"],
-      "js": ["shared.js", "xero.js"],
+      "matches": [
+        "https://go.xero.com/*"
+      ],
+      "js": [
+        "shared.js",
+        "xero.js"
+      ],
       "run_at": "document_idle"
     },
     {
-      "matches": ["https://app.pandadoc.com/*"],
-      "js": ["shared.js", "pandadoc.js"],
+      "matches": [
+        "https://app.pandadoc.com/*"
+      ],
+      "js": [
+        "shared.js",
+        "pandadoc.js"
+      ],
       "run_at": "document_idle"
     }
   ],

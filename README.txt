@@ -1,4 +1,11 @@
-Xero to PandaDoc Helper v1.1.0
+
+Xero to PandaDoc Helper v1.2.0
+
+What changed in this version
+- Added an options page.
+- Added editable PandaDoc field mapping.
+- Replaced alerts with small toast notifications in page.
+- Added a popup showing the last saved Xero contact and quote number.
 
 What it does
 - Xero: adds "Copy Contact Details" beside Edit on contact pages.
@@ -25,7 +32,5 @@ How to use
 3. Open PandaDoc.
 4. When the Create new recipient dialog appears, use Fill from Xero.
 5. On the document page, use Fill from Xero beside Invite.
-
-Notes
-- Clipboard copy is attempted from Xero too, but storage is the main bridge.
-- If PandaDoc changes a selector later, the content scripts may need a small update.
+6. Use the extension popup to review what was last saved.
+7. Use the options page to edit PandaDoc field mappings.
