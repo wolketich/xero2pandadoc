@@ -33,17 +33,37 @@
     },
 
     async getStoredPayload() {
-      const data = await chrome.storage.local.get(['xeroPayload']);
-      return data.xeroPayload || null;
+      try {
+        if (chrome?.storage?.local) {
+          const data = await chrome.storage.local.get(['xeroPayload']);
+          return data.xeroPayload || null;
+        }
+      } catch (e) {}
+
+      // fallback
+      try {
+        const raw = localStorage.getItem('xeroPayload');
+        return raw ? JSON.parse(raw) : null;
+      } catch {
+        return null;
+      }
     },
 
     async setStoredPayload(payload) {
-      await chrome.storage.local.set({
-        xeroPayload: {
-          ...payload,
-          savedAt: new Date().toISOString()
+      const data = {
+        ...payload,
+        savedAt: new Date().toISOString()
+      };
+
+      try {
+        if (chrome?.storage?.local) {
+          await chrome.storage.local.set({ xeroPayload: data });
+          return;
         }
-      });
+      } catch (e) {}
+
+      // fallback
+      localStorage.setItem('xeroPayload', JSON.stringify(data));
     },
 
     async getSettings() {
