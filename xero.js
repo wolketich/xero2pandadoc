@@ -3,6 +3,8 @@
   if (window.__xpXeroLoaded) return;
   window.__xpXeroLoaded = true;
 
+  console.log('[XP] xero.js loaded', location.href);
+
   const { q, qa, clean, text } = window.XP;
 
   function getFieldValue(block) {

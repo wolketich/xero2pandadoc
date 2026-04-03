@@ -2,6 +2,8 @@
   if (window.__xpSharedLoaded) return;
   window.__xpSharedLoaded = true;
 
+  console.log('[XP] shared.js loaded', location.href);
+  
   const DEFAULT_SETTINGS = {
     documentMappings: [
       { placeholder: 'Homeowner Full Name', source: 'contact.primaryPersonOrName' },
